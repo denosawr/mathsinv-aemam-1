@@ -83,7 +83,7 @@ def main():
     print("Beginning calculations... hold on! (%d generations, %d predictions)" %
           (args.tries, args.tries*100))
 
-    POLYOPT_DATA = utils.generate_report("Opt poly model", DATA_FLAT, XVALS, utils.wrapper(
+    POLYOPT_DATA = utils.generate_report("Opt poly", DATA_FLAT, XVALS, utils.wrapper(
         gen_opt_poly_model,
         XVALS,
         DATA_FLAT,
@@ -91,33 +91,41 @@ def main():
     ), times=args.tries)
 
     POLYFIX_DEGREE = 15
-    POLYFIX_DATA = utils.generate_report("Fixed poly model (δ%d)" % POLYFIX_DEGREE, DATA_FLAT, XVALS, utils.wrapper(
+    POLYFIX_DATA = utils.generate_report("Fixed poly (δ%d)" % POLYFIX_DEGREE, DATA_FLAT, XVALS, utils.wrapper(
         gen_poly_model,
         XVALS,
         DATA_FLAT,
         degree=POLYFIX_DEGREE
     ), times=args.tries)
 
-    TRIG_DATA = utils.generate_report("Trig model", DATA_FLAT, XVALS, utils.wrapper(
+    TRIG_DATA_1 = utils.generate_report("Trig1", DATA_FLAT, XVALS, utils.wrapper(
         gen_trig_model,
         XVALS,
         DATA_FLAT
     ), times=args.tries)
 
-    COMBINED_DATA = utils.generate_report("Combined model", DATA_FLAT, XVALS, utils.wrapper(
+    TRIG_DATA_2 = utils.generate_report("Trig2", DATA_FLAT, XVALS, utils.wrapper(
+        gen_trig_model,
+        XVALS[:180],
+        DATA_FLAT[:180]
+    ), times=args.tries)
+    TRIG_DATA_2["model"]["predictions"] = TRIG_DATA_2["model"]["model"](XVALS)
+
+    COMBINED_DATA = utils.generate_report("Combined", DATA_FLAT, XVALS, utils.wrapper(
         gen_combined_model,
         XVALS,
         DATA_FLAT,
         maxDegree=50,
     ), times=args.tries)
 
-    data["Opt polyfit (δ%d)" % POLYOPT_DATA["model"]["degree"]] = POLYOPT_DATA
-    data["Fix polyfit (δ%d)" % POLYFIX_DATA["model"]["degree"]] = POLYFIX_DATA
-    data["Cos"] = TRIG_DATA
+    data["Opt poly (δ%d)" % POLYOPT_DATA["model"]["degree"]] = POLYOPT_DATA
+    data["Fix poly (δ%d)" % POLYFIX_DATA["model"]["degree"]] = POLYFIX_DATA
+    data["Cos1"] = TRIG_DATA_1
+    data["Cos2"] = TRIG_DATA_2
     data["Combined (δ%d)" % COMBINED_DATA["model"]["poly"]
          ["degree"]] = COMBINED_DATA
 
-    TABLE_ROW = "%s{:>22}%s | " + " | ".join(("%s{:^17}%s",)*len(data.keys()))
+    TABLE_ROW = "%s{:>22}%s | " + " | ".join(("%s{:^14}%s",)*len(data.keys()))
     TRANSLATION_DICT = {
         "differencesquares": ("Sum of difference^2", int),
         "incorrectvalues": ("# of incorrect values", len),
@@ -190,6 +198,9 @@ def main():
 
             outputJSON = outputJSON.replace("\"%^", "").replace("%^\"", "")
             f.write(outputJSON)
+
+        print("\n"*2 + Fore.YELLOW + "  Equations and data written to `%s`." %
+              args.outfile)
 
     if args.graph:
         plt.legend()

@@ -126,7 +126,7 @@ def generate_report(NAME: str, ORIGINAL_DATA, XVALS, model, times=10):
     PREDICT_MODEL_AVG_TIME = 0
 
     accuracy = generate_accuracy(
-        NAME, ORIGINAL_DATA, MODEL_DATA["predictions"])
+        NAME, ORIGINAL_DATA, MODEL_DATA["model"](XVALS))
 
     GENERATE_MODEL_AVG_TIME = progress(
         model, times, NAME + ": Generating %d models")
@@ -164,8 +164,6 @@ def generate_accuracy(NAME, ORIGINAL_DATA, PREDICTED_DATA):
 
     DIFF = np.subtract(np.around(PREDICTED_DATA), ORIGINAL_DATA)
     INACCURATE = DIFF[np.nonzero(DIFF)]
-    INCORRECT = len(INACCURATE)
-    TOTAL = len(ORIGINAL_DATA)
 
     return {
         "differencesquares": LSSUM,
